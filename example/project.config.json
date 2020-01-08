@@ -108,6 +108,13 @@
 					"pathName": "pages/index/index",
 					"query": "path=https://github.com/landn172/lottie-miniapp/files/3872556/FeHelper-20191121104350.txt",
 					"scene": null
+				},
+				{
+					"id": -1,
+					"name": "issues-141",
+					"pathName": "pages/index/index",
+					"query": "path=https://github.com/landn172/lottie-miniapp/files/4033401/data.txt",
+					"scene": null
 				}
 			]
 		}
