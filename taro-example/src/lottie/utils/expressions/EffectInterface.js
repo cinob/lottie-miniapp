@@ -4,11 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _ExpressionValue = require('./ExpressionValue');
-
-var _ExpressionValue2 = _interopRequireDefault(_ExpressionValue);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _ExpressionValueFactory = require('./ExpressionValueFactory');
 
 function createEffectsInterface(elem, propertyGroup) {
   if (elem.effectsManager) {
@@ -32,7 +28,8 @@ function createEffectsInterface(elem, propertyGroup) {
       }
     };
   }
-}
+} // import ExpressionValue from './ExpressionValue';
+
 
 function createGroupInterface(data, elements, propertyGroup, elem) {
   var effectElements = [];
@@ -83,16 +80,17 @@ function createGroupInterface(data, elements, propertyGroup, elem) {
       return data.np;
     }
   });
-  groupInterface.active = data.en !== 0;
+  groupInterface.active = groupInterface.enabled = data.en !== 0;
   return groupInterface;
 }
 
 function createValueInterface(element, type, elem, propertyGroup) {
+  var expressionProperty = (0, _ExpressionValueFactory.ExpressionPropertyInterface)(element.p);
   function interfaceFunction() {
     if (type === 10) {
       return elem.comp.compInterface(element.p.v);
     }
-    return (0, _ExpressionValue2.default)(element.p);
+    return expressionProperty();
   }
 
   if (element.p.setGroupProperty) {

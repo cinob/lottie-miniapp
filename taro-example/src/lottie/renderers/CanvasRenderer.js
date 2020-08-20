@@ -66,8 +66,10 @@ var CanvasRenderer = function (_BaseRenderer) {
     _this.renderConfig = {
       clearCanvas: config && config.clearCanvas !== undefined ? config.clearCanvas : true,
       context: config && config.context || null,
+      canvas: config && config.canvas,
       progressiveLoad: config && config.progressiveLoad || false,
       preserveAspectRatio: config && config.preserveAspectRatio || 'xMidYMid meet',
+      imagePreserveAspectRatio: config && config.imagePreserveAspectRatio || 'xMidYMid slice',
       className: config && config.className || ''
     };
     _this.renderConfig.dpr = config && config.dpr || 1;
@@ -83,6 +85,7 @@ var CanvasRenderer = function (_BaseRenderer) {
     _this.pendingElements = [];
     _this.transformMat = new _transformationMatrix2.default();
     _this.completeLayers = false;
+    _this.rendererType = 'canvas';
     return _this;
   }
 
@@ -123,8 +126,6 @@ var CanvasRenderer = function (_BaseRenderer) {
         return;
       }
       if (!this.renderConfig.clearCanvas) {
-        // this.canvasContext.setTransform(props[0], props[1], props[4], props[5], props[12], props[13]);
-
         this.canvasContext.transform(props[0], props[1], props[4], props[5], props[12], props[13]);
         return;
       }
@@ -341,6 +342,7 @@ var CanvasRenderer = function (_BaseRenderer) {
           this.elements[i].prepareFrame(num - this.layers[i].st);
         }
       }
+
       if (this.globalData._mdf) {
         if (this.renderConfig.clearCanvas === true) {
           this.canvasContext.clearRect(0, 0, this.transformCanvas.w, this.transformCanvas.h);
@@ -349,11 +351,15 @@ var CanvasRenderer = function (_BaseRenderer) {
         }
         for (i = len - 1; i >= 0; i -= 1) {
           if (this.completeLayers || this.elements[i]) {
-            this.elements[i].renderFrame();
+            this.elements[i].renderFrame(i === 0);
           }
         }
-        this.canvasContext.draw();
+        if (this.canvasContext.draw) this.canvasContext.draw();
         if (this.renderConfig.clearCanvas !== true) {
+          this.restore();
+        } else {
+          // fix draw() reset setTransform or opacity
+          this.save();
           this.restore();
         }
       }

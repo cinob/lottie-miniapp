@@ -21,14 +21,11 @@ exports.default = function (shapes, view, propertyGroup) {
   }
   _interfaceFunction.propertyGroup = propertyGroup;
   interfaces = iterateElements(shapes, view, _interfaceFunction);
+  _interfaceFunction.numProperties = interfaces.length;
   return _interfaceFunction;
 };
 
-var _ExpressionValue = require('../expressions/ExpressionValue');
-
-var _ExpressionValue2 = _interopRequireDefault(_ExpressionValue);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _ExpressionValueFactory = require('../expressions/ExpressionValueFactory');
 
 function iterateElements(shapes, view, propertyGroup) {
   var arr = [];
@@ -65,7 +62,7 @@ function iterateElements(shapes, view, propertyGroup) {
 
 function contentsInterfaceFactory(shape, view, propertyGroup) {
   var interfaces = void 0;
-  var interfaceFunction = function interfaceFunction(value) {
+  var interfaceFunction = function _interfaceFunction(value) {
     var i = 0;
     var len = interfaces.length;
     while (i < len) {
@@ -133,20 +130,17 @@ function fillInterfaceFactory(shape, view, propertyGroup) {
   function interfaceFunction(val) {
     if (val === 'Color' || val === 'color') {
       return interfaceFunction.color;
-    } else if (val === 'Opacity' || val === 'opacity') {
+    }
+    if (val === 'Opacity' || val === 'opacity') {
       return interfaceFunction.opacity;
     }
   }
   Object.defineProperties(interfaceFunction, {
     color: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(view.c, 1 / view.c.mult, 'color');
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(view.c)
     },
     opacity: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(view.o, 100);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(view.o)
     },
     _name: {
       value: shape.nm
@@ -160,13 +154,11 @@ function fillInterfaceFactory(shape, view, propertyGroup) {
   view.o.setGroupProperty(propertyGroup);
   return interfaceFunction;
 }
-
+var ob = {};
 function strokeInterfaceFactory(shape, view, propertyGroup) {
   function _propertyGroup(val) {
     if (val === 1) {
-      // eslint:error
-      // return ob;
-      return {};
+      return ob;
     }
     return propertyGroup(val - 1);
   }
@@ -178,9 +170,7 @@ function strokeInterfaceFactory(shape, view, propertyGroup) {
   }
   function addPropertyToDashOb(i) {
     Object.defineProperty(dashOb, shape.d[i].nm, {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(view.d.dataProps[i].p);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(view.d.dataProps[i].p)
     });
   }
   var i = void 0;
@@ -194,27 +184,23 @@ function strokeInterfaceFactory(shape, view, propertyGroup) {
   function interfaceFunction(val) {
     if (val === 'Color' || val === 'color') {
       return interfaceFunction.color;
-    } else if (val === 'Opacity' || val === 'opacity') {
+    }
+    if (val === 'Opacity' || val === 'opacity') {
       return interfaceFunction.opacity;
-    } else if (val === 'Stroke Width' || val === 'stroke width') {
+    }
+    if (val === 'Stroke Width' || val === 'stroke width') {
       return interfaceFunction.strokeWidth;
     }
   }
   Object.defineProperties(interfaceFunction, {
     color: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(view.c, 1 / view.c.mult, 'color');
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(view.c)
     },
     opacity: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(view.o, 100);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(view.o)
     },
     strokeWidth: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(view.w);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(view.w)
     },
     dash: {
       get: function get() {
@@ -260,22 +246,17 @@ function trimInterfaceFactory(shape, view, propertyGroup) {
     }
   }
   interfaceFunction.propertyIndex = shape.ix;
+  interfaceFunction.propertyGroup = propertyGroup;
 
   Object.defineProperties(interfaceFunction, {
     start: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(view.s, 1 / view.s.mult);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(view.s)
     },
     end: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(view.e, 1 / view.e.mult);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(view.e)
     },
     offset: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(view.o);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(view.o)
     },
     _name: {
       value: shape.nm
@@ -328,39 +309,25 @@ function transformInterfaceFactory(shape, view, propertyGroup) {
   }
   Object.defineProperties(interfaceFunction, {
     opacity: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(view.transform.mProps.o, 1 / view.transform.mProps.o.mult);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(view.transform.mProps.o)
     },
     position: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(view.transform.mProps.p);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(view.transform.mProps.p)
     },
     anchorPoint: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(view.transform.mProps.a);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(view.transform.mProps.a)
     },
     scale: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(view.transform.mProps.s, 1 / view.transform.mProps.s.mult);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(view.transform.mProps.s)
     },
     rotation: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(view.transform.mProps.r, 1 / view.transform.mProps.r.mult);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(view.transform.mProps.r)
     },
     skew: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(view.transform.mProps.sk);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(view.transform.mProps.sk)
     },
     skewAxis: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(view.transform.mProps.sa);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(view.transform.mProps.sa)
     },
     _name: {
       value: shape.nm
@@ -368,6 +335,7 @@ function transformInterfaceFactory(shape, view, propertyGroup) {
   });
   interfaceFunction.ty = 'tr';
   interfaceFunction.mn = shape.mn;
+  interfaceFunction.propertyGroup = propertyGroup;
   return interfaceFunction;
 }
 
@@ -390,16 +358,13 @@ function ellipseInterfaceFactory(shape, view, propertyGroup) {
       return interfaceFunction.size;
     }
   }
+
   Object.defineProperties(interfaceFunction, {
     size: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(prop.s);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(prop.s)
     },
     position: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(prop.p);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(prop.p)
     },
     _name: {
       value: shape.nm
@@ -451,47 +416,28 @@ function starInterfaceFactory(shape, view, propertyGroup) {
       return interfaceFunction.innerRoundness;
     }
   }
+
   Object.defineProperties(interfaceFunction, {
     position: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(prop.p);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(prop.p)
     },
     rotation: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(prop.r, 1 / prop.r.mult);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(prop.r)
     },
     points: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(prop.pt);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(prop.pt)
     },
     outerRadius: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(prop.or);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(prop.or)
     },
     outerRoundness: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(prop.os);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(prop.os)
     },
     innerRadius: {
-      get: function get() {
-        if (!prop.ir) {
-          return 0;
-        }
-        return (0, _ExpressionValue2.default)(prop.ir);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(prop.ir)
     },
     innerRoundness: {
-      get: function get() {
-        if (!prop.is) {
-          return 0;
-        }
-        return (0, _ExpressionValue2.default)(prop.is, 1 / prop.is.mult);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(prop.is)
     },
     _name: {
       value: shape.nm
@@ -527,19 +473,13 @@ function rectInterfaceFactory(shape, view, propertyGroup) {
   }
   Object.defineProperties(interfaceFunction, {
     position: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(prop.p);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(prop.p)
     },
     roundness: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(prop.r);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(prop.r)
     },
     size: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(prop.s);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(prop.s)
     },
     _name: {
       value: shape.nm
@@ -567,9 +507,7 @@ function roundedInterfaceFactory(shape, view, propertyGroup) {
   }
   Object.defineProperties(interfaceFunction, {
     radius: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(prop.rd);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(prop.rd)
     },
     _name: {
       value: shape.nm
@@ -594,20 +532,17 @@ function repeaterInterfaceFactory(shape, view, propertyGroup) {
   function interfaceFunction(value) {
     if (shape.c.ix === value || value === 'Copies') {
       return interfaceFunction.copies;
-    } else if (shape.o.ix === value || value === 'Offset') {
+    }
+    if (shape.o.ix === value || value === 'Offset') {
       return interfaceFunction.offset;
     }
   }
   Object.defineProperties(interfaceFunction, {
     copies: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(prop.c);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(prop.c)
     },
     offset: {
-      get: function get() {
-        return (0, _ExpressionValue2.default)(prop.o);
-      }
+      get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(prop.o)
     },
     _name: {
       value: shape.nm
@@ -653,6 +588,9 @@ function pathInterfaceFactory(shape, view, propertyGroup) {
       value: shape.nm
     },
     ix: {
+      value: shape.ix
+    },
+    propertyIndex: {
       value: shape.ix
     },
     mn: {

@@ -8,6 +8,7 @@ exports.interpolateShape = interpolateShape;
 exports.interpolateShapeCurrentTime = interpolateShapeCurrentTime;
 exports.resetShape = resetShape;
 exports.shapesEqual = shapesEqual;
+exports.setVValue = setVValue;
 exports.processEffectsSequence = processEffectsSequence;
 exports.addEffect = addEffect;
 
@@ -40,11 +41,12 @@ function interpolateShape(frameNum, previousValue, caching) {
     isHold = true;
     iterationIndex = 0;
   } else if (frameNum >= kf[kf.length - 1].t - this.offsetTime) {
-    if (kf[kf.length - 2].h === 1) {
-      keyPropS = kf[kf.length - 1].s[0];
-    } else {
-      keyPropS = kf[kf.length - 2].e[0];
-    }
+    keyPropS = kf[kf.length - 1].s ? kf[kf.length - 1].s[0] : kf[kf.length - 2].e[0];
+    /* if(kf[kf.length - 1].s){
+        keyPropS = kf[kf.length - 1].s[0];
+    }else{
+        keyPropS = kf[kf.length - 2].e[0];
+    } */
     isHold = true;
   } else {
     var i = iterationIndex;
@@ -81,7 +83,7 @@ function interpolateShape(frameNum, previousValue, caching) {
         }
         perc = fnc((frameNum - (keyData.t - this.offsetTime)) / (nextKeyData.t - this.offsetTime - (keyData.t - this.offsetTime)));
       }
-      keyPropE = keyData.e[0];
+      keyPropE = nextKeyData.s ? nextKeyData.s[0] : keyData.e[0];
     }
     keyPropS = keyData.s[0];
   }
@@ -134,28 +136,39 @@ function shapesEqual(shape1, shape2) {
   return true;
 }
 
+function setVValue(newPath) {
+  if (!shapesEqual(this.v, newPath)) {
+    this.v = _shape_pool2.default.clone(newPath);
+    this.localShapeCollection.releaseShapes();
+    this.localShapeCollection.addShape(this.v);
+    this._mdf = true;
+    this.paths = this.localShapeCollection;
+  }
+}
+
 function processEffectsSequence() {
-  if (this.lock || this.elem.globalData.frameId === this.frameId) {
+  if (this.elem.globalData.frameId === this.frameId) {
+    return;
+  }
+  if (!this.effectsSequence.length) {
+    this._mdf = false;
+    return;
+  }
+  if (this.lock) {
+    this.setVValue(this.pv);
     return;
   }
   this.lock = true;
-  this.frameId = this.elem.globalData.frameId;
   this._mdf = false;
-  /* eslint no-nested-ternary: 0 */
   var finalValue = this.kf ? this.pv : this.data.ks ? this.data.ks.k : this.data.pt.k;
   var i = void 0;
   var len = this.effectsSequence.length;
   for (i = 0; i < len; i += 1) {
     finalValue = this.effectsSequence[i](finalValue);
   }
-  if (!shapesEqual(this.v, finalValue)) {
-    this.v = _shape_pool2.default.clone(finalValue);
-    this.localShapeCollection.releaseShapes();
-    this.localShapeCollection.addShape(this.v);
-    this._mdf = true;
-    this.paths = this.localShapeCollection;
-  }
+  this.setVValue(finalValue);
   this.lock = false;
+  this.frameId = this.elem.globalData.frameId;
 }
 
 function addEffect(effectFunction) {

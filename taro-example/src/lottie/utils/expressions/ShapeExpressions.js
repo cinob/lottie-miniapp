@@ -6,7 +6,9 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _Decorator = require('./Decorator');
+var _expressionHelpers = require('./expressionHelpers');
+
+var expressionHelpers = _interopRequireWildcard(_expressionHelpers);
 
 var _index = require('../index');
 
@@ -16,19 +18,24 @@ var _bez2 = _interopRequireDefault(_bez);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var ShapeExpressions = function () {
   function ShapeExpressions() {
     _classCallCheck(this, ShapeExpressions);
 
-    this.setGroupProperty = _Decorator.setGroupProperty;
-    this.getValueAtTime = _Decorator.getStaticValueAtTime;
+    this.setGroupProperty = expressionHelpers.setGroupProperty;
+    this.getValueAtTime = expressionHelpers.getStaticValueAtTime;
   }
 
   _createClass(ShapeExpressions, [{
     key: 'vertices',
     value: function vertices(prop, time) {
+      if (this.k) {
+        this.getValue();
+      }
       var shapePath = this.v;
       if (time !== undefined) {
         shapePath = this.getValueAtTime(time, 0);
@@ -114,6 +121,9 @@ var ShapeExpressions = function () {
       var xLength = pt2[0] - pt1[0];
       var yLength = pt2[1] - pt1[1];
       var magnitude = Math.sqrt(Math.pow(xLength, 2) + Math.pow(yLength, 2));
+      if (magnitude === 0) {
+        return [0, 0];
+      }
       var unitVector = vectorType === 'tangent' ? [xLength / magnitude, yLength / magnitude] : [-yLength / magnitude, xLength / magnitude];
       return unitVector;
     }

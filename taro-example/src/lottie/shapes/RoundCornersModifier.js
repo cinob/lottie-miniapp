@@ -66,7 +66,6 @@ var RoundCornersModifier = function (_ShapeModifier) {
       var oY = void 0;
       var iX = void 0;
       var iY = void 0;
-
       for (i = 0; i < len; i += 1) {
         currentV = path.v[i];
         currentO = path.o[i];
@@ -74,6 +73,9 @@ var RoundCornersModifier = function (_ShapeModifier) {
         if (currentV[0] === currentO[0] && currentV[1] === currentO[1] && currentV[0] === currentI[0] && currentV[1] === currentI[1]) {
           if ((i === 0 || i === len - 1) && !path.c) {
             cloned_path.setTripleAt(currentV[0], currentV[1], currentO[0], currentO[1], currentI[0], currentI[1], index);
+            /* cloned_path.v[index] = currentV;
+                  cloned_path.o[index] = currentO;
+                  cloned_path.i[index] = currentI; */
             index += 1;
           } else {
             if (i === 0) {
@@ -125,14 +127,11 @@ var RoundCornersModifier = function (_ShapeModifier) {
         var shapeData = void 0;
         // let newPaths;
         var localShapeCollection = void 0;
-        var shapes = this.shapes,
-            _mdf = this._mdf;
-
         for (i = 0; i < len; i += 1) {
-          shapeData = shapes[i];
+          shapeData = this.shapes[i];
           // newPaths = shapeData.shape.paths;
           localShapeCollection = shapeData.localShapeCollection;
-          if (!(!shapeData.shape._mdf && !_mdf && !_isFirstFrame)) {
+          if (!(!shapeData.shape._mdf && !this._mdf && !_isFirstFrame)) {
             localShapeCollection.releaseShapes();
             shapeData.shape._mdf = true;
             shapePaths = shapeData.shape.paths.shapes;

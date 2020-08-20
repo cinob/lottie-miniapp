@@ -34,10 +34,6 @@ var ShapeProperty = function (_ShapeExpressions) {
 
     var _this = _possibleConstructorReturn(this, (ShapeProperty.__proto__ || Object.getPrototypeOf(ShapeProperty)).call(this));
 
-    _this.addEffect = _index.addEffect;
-    _this.interpolateShape = _index.interpolateShape;
-    _this.getValue = _index.processEffectsSequence;
-
     _this.propType = 'shape';
     _this.comp = elem.comp;
     _this.container = elem;
@@ -59,5 +55,10 @@ var ShapeProperty = function (_ShapeExpressions) {
 
   return ShapeProperty;
 }(_ShapeExpressions3.default);
+
+ShapeProperty.prototype.interpolateShape = _index.interpolateShape;
+ShapeProperty.prototype.getValue = _index.processEffectsSequence;
+ShapeProperty.prototype.setVValue = _index.setVValue;
+ShapeProperty.prototype.addEffect = _index.addEffect;
 
 exports.default = ShapeProperty;

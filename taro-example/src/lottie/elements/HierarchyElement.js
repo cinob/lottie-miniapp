@@ -28,6 +28,7 @@ var HierarchyElement = function () {
       this._isParent = false;
       this.checkParenting();
     }
+
     /**
        * @function
        * Sets layer's hierarchy.
@@ -41,6 +42,7 @@ var HierarchyElement = function () {
     value: function setHierarchy(hierarchy) {
       this.hierarchy = hierarchy;
     }
+
     /**
        * @function
        * Sets layer as parent.
@@ -52,6 +54,7 @@ var HierarchyElement = function () {
     value: function setAsParent() {
       this._isParent = true;
     }
+
     /**
        * @function
        * Searches layer's parenting chain

@@ -18,6 +18,8 @@ var _CVMaskElement = require('./CVMaskElement');
 
 var _CVMaskElement2 = _interopRequireDefault(_CVMaskElement);
 
+var _blendModes = require('../utils/helpers/blendModes');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -50,9 +52,14 @@ var CVBaseElement = function () {
       var globalData = this.globalData;
       if (globalData.blendMode !== this.data.bm) {
         globalData.blendMode = this.data.bm;
-        var blendModeValue = this.getBlendMode();
+        var blendModeValue = (0, _blendModes.getBlendMode)(this.data.bm);
         globalData.canvasContext.globalCompositeOperation = blendModeValue;
       }
+    }
+  }, {
+    key: 'createRenderableComponents',
+    value: function createRenderableComponents() {
+      this.maskManager = new _CVMaskElement2.default(this.data, this);
     }
   }, {
     key: 'addMasks',
@@ -84,11 +91,12 @@ var CVBaseElement = function () {
       this.renderTransform();
       this.renderRenderable();
       this.setBlendMode();
-      this.globalData.renderer.save();
+      var forceRealStack = this.data.ty === 0;
+      this.globalData.renderer.save(forceRealStack);
       this.globalData.renderer.ctxTransform(this.finalTransform.mat.props);
       this.globalData.renderer.ctxOpacity(this.finalTransform.mProp.o.v);
       this.renderInnerContent();
-      this.globalData.renderer.restore();
+      this.globalData.renderer.restore(forceRealStack);
       if (this.maskManager.hasMasks) {
         this.globalData.renderer.restore(true);
       }

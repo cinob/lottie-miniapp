@@ -40,9 +40,6 @@ var KeyframedShapeProperty = function (_ShapeExpressions) {
 
     var _this = _possibleConstructorReturn(this, (KeyframedShapeProperty.__proto__ || Object.getPrototypeOf(KeyframedShapeProperty)).call(this));
 
-    _this.getValue = _index.processEffectsSequence;
-    _this.interpolateShape = _index.interpolateShape;
-    _this.addEffect = _index.addEffect;
     _this.getShapeValueAtTime = _Decorator.getShapeValueAtTime;
     _this.initiateExpression = _ExpressionManager2.default.initiateExpression;
 
@@ -75,5 +72,10 @@ var KeyframedShapeProperty = function (_ShapeExpressions) {
 
   return KeyframedShapeProperty;
 }(_ShapeExpressions3.default);
+
+KeyframedShapeProperty.prototype.getValue = _index.processEffectsSequence;
+KeyframedShapeProperty.prototype.interpolateShape = _index.interpolateShape;
+KeyframedShapeProperty.prototype.setVValue = _index.setVValue;
+KeyframedShapeProperty.prototype.addEffect = _index.addEffect;
 
 exports.default = KeyframedShapeProperty;

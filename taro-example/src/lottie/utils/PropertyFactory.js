@@ -98,18 +98,21 @@ function interpolateValue(frameNum, caching) {
   var jLen = void 0;
   var j = void 0;
   var fnc = void 0;
+  var nextKeyTime = nextKeyData.t - offsetTime;
+  var keyTime = keyData.t - offsetTime;
+  var endValue = void 0;
   if (keyData.to) {
     if (!keyData.bezierData) {
-      _bez2.default.buildBezierData(keyData);
+      keyData.bezierData = _bez2.default.buildBezierData(keyData.s, nextKeyData.s || keyData.e, keyData.to, keyData.ti);
     }
     var bezierData = keyData.bezierData;
-    if (frameNum >= nextKeyData.t - offsetTime || frameNum < keyData.t - offsetTime) {
-      var ind = frameNum >= nextKeyData.t - offsetTime ? bezierData.points.length - 1 : 0;
+    if (frameNum >= nextKeyTime || frameNum < keyTime) {
+      var ind = frameNum >= nextKeyTime ? bezierData.points.length - 1 : 0;
       kLen = bezierData.points[ind].point.length;
       for (k = 0; k < kLen; k += 1) {
         newValue[k] = bezierData.points[ind].point[k];
       }
-      caching._lastBezierData = null;
+      // caching._lastKeyframeIndex = -1;
     } else {
       if (keyData.__fnct) {
         fnc = keyData.__fnct;
@@ -117,12 +120,12 @@ function interpolateValue(frameNum, caching) {
         fnc = _BezierEaser2.default.getBezierEasing(keyData.o.x, keyData.o.y, keyData.i.x, keyData.i.y, keyData.n).get;
         keyData.__fnct = fnc;
       }
-      perc = fnc((frameNum - (keyData.t - offsetTime)) / (nextKeyData.t - offsetTime - (keyData.t - offsetTime)));
+      perc = fnc((frameNum - keyTime) / (nextKeyTime - keyTime));
       var distanceInLine = bezierData.segmentLength * perc;
 
       var segmentPerc = void 0;
-      var addedLength = caching.lastFrame < frameNum && caching._lastBezierData === bezierData ? caching._lastAddedLength : 0;
-      j = caching.lastFrame < frameNum && caching._lastBezierData === bezierData ? caching._lastPoint : 0;
+      var addedLength = caching.lastFrame < frameNum && caching._lastKeyframeIndex === i ? caching._lastAddedLength : 0;
+      j = caching.lastFrame < frameNum && caching._lastKeyframeIndex === i ? caching._lastPoint : 0;
       flag = true;
       jLen = bezierData.points.length;
       while (flag) {
@@ -149,7 +152,7 @@ function interpolateValue(frameNum, caching) {
       }
       caching._lastPoint = j;
       caching._lastAddedLength = addedLength - bezierData.points[j].partialLength;
-      caching._lastBezierData = bezierData;
+      caching._lastKeyframeIndex = i;
     }
   } else {
     var outX = void 0;
@@ -158,27 +161,28 @@ function interpolateValue(frameNum, caching) {
     var inY = void 0;
     var keyValue = void 0;
     len = keyData.s.length;
+    endValue = nextKeyData.s || keyData.e;
     if (this.sh && keyData.h !== 1) {
-      if (frameNum >= nextKeyData.t - offsetTime) {
-        newValue[0] = keyData.e[0];
-        newValue[1] = keyData.e[1];
-        newValue[2] = keyData.e[2];
-      } else if (frameNum <= keyData.t - offsetTime) {
+      if (frameNum >= nextKeyTime) {
+        newValue[0] = endValue[0];
+        newValue[1] = endValue[1];
+        newValue[2] = endValue[2];
+      } else if (frameNum <= keyTime) {
         newValue[0] = keyData.s[0];
         newValue[1] = keyData.s[1];
         newValue[2] = keyData.s[2];
       } else {
         var quatStart = createQuaternion(keyData.s);
-        var quatEnd = createQuaternion(keyData.e);
-        var time = (frameNum - (keyData.t - offsetTime)) / (nextKeyData.t - offsetTime - (keyData.t - offsetTime));
+        var quatEnd = createQuaternion(endValue);
+        var time = (frameNum - keyTime) / (nextKeyTime - keyTime);
         quaternionToEuler(newValue, slerp(quatStart, quatEnd, time));
       }
     } else {
       for (i = 0; i < len; i += 1) {
         if (keyData.h !== 1) {
-          if (frameNum >= nextKeyData.t - offsetTime) {
+          if (frameNum >= nextKeyTime) {
             perc = 1;
-          } else if (frameNum < keyData.t - offsetTime) {
+          } else if (frameNum < keyTime) {
             perc = 0;
           } else {
             if (keyData.o.x.constructor === Array) {
@@ -186,10 +190,10 @@ function interpolateValue(frameNum, caching) {
                 keyData.__fnct = [];
               }
               if (!keyData.__fnct[i]) {
-                outX = keyData.o.x[i] || keyData.o.x[0];
-                outY = keyData.o.y[i] || keyData.o.y[0];
-                inX = keyData.i.x[i] || keyData.i.x[0];
-                inY = keyData.i.y[i] || keyData.i.y[0];
+                outX = typeof keyData.o.x[i] === 'undefined' ? keyData.o.x[0] : keyData.o.x[i];
+                outY = typeof keyData.o.y[i] === 'undefined' ? keyData.o.y[0] : keyData.o.y[i];
+                inX = typeof keyData.i.x[i] === 'undefined' ? keyData.i.x[0] : keyData.i.x[i];
+                inY = typeof keyData.i.y[i] === 'undefined' ? keyData.i.y[0] : keyData.i.y[i];
                 fnc = _BezierEaser2.default.getBezierEasing(outX, outY, inX, inY).get;
                 keyData.__fnct[i] = fnc;
               } else {
@@ -205,11 +209,12 @@ function interpolateValue(frameNum, caching) {
             } else {
               fnc = keyData.__fnct;
             }
-            perc = fnc((frameNum - (keyData.t - offsetTime)) / (nextKeyData.t - offsetTime - (keyData.t - offsetTime)));
+            perc = fnc((frameNum - keyTime) / (nextKeyTime - keyTime));
           }
         }
 
-        keyValue = keyData.h === 1 ? keyData.s[i] : keyData.s[i] + (keyData.e[i] - keyData.s[i]) * perc;
+        endValue = nextKeyData.s || keyData.e;
+        keyValue = keyData.h === 1 ? keyData.s[i] : keyData.s[i] + (endValue[i] - keyData.s[i]) * perc;
 
         if (len === 1) {
           newValue = keyValue;
@@ -498,31 +503,18 @@ var PropertyFactory = (_class = function () {
     key: 'getProp',
     value: function getProp(elem, data, type, mult, container) {
       var p = void 0;
-      if (data.a === 0) {
-        if (type === 0) {
-          p = new ValueProperty(elem, data, mult, container);
-        } else {
-          p = new MultiDimensionalProperty(elem, data, mult, container);
-        }
-      } else if (data.a === 1) {
-        if (type === 0) {
-          p = new KeyframedValueProperty(elem, data, mult, container);
-        } else {
-          p = new KeyframedMultidimensionalProperty(elem, data, mult, container);
-        }
-      } else if (!data.k.length) {
+      if (!data.k.length) {
         p = new ValueProperty(elem, data, mult, container);
       } else if (typeof data.k[0] === 'number') {
         p = new MultiDimensionalProperty(elem, data, mult, container);
       } else {
+        // eslint-disable-next-line default-case
         switch (type) {
           case 0:
             p = new KeyframedValueProperty(elem, data, mult, container);
             break;
           case 1:
             p = new KeyframedMultidimensionalProperty(elem, data, mult, container);
-            break;
-          default:
             break;
         }
       }

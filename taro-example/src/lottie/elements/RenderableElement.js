@@ -57,6 +57,7 @@ var RenderableElement = function () {
         this.show();
       }
     }
+
     /**
      * @function
      * Initializes frame related properties.

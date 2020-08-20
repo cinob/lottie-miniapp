@@ -1,0 +1,28 @@
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getBlendMode = getBlendMode;
+var blendModeEnums = {
+  0: 'source-over',
+  1: 'multiply',
+  2: 'screen',
+  3: 'overlay',
+  4: 'darken',
+  5: 'lighten',
+  6: 'color-dodge',
+  7: 'color-burn',
+  8: 'hard-light',
+  9: 'soft-light',
+  10: 'difference',
+  11: 'exclusion',
+  12: 'hue',
+  13: 'saturation',
+  14: 'color',
+  15: 'luminosity'
+};
+
+function getBlendMode(mode) {
+  return blendModeEnums[mode] || '';
+}

@@ -8,6 +8,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _index = require('../platform/index');
+
+var _index2 = _interopRequireDefault(_index);
+
 var _CanvasRenderer = require('../renderers/CanvasRenderer');
 
 var _CanvasRenderer2 = _interopRequireDefault(_CanvasRenderer);
@@ -34,7 +38,7 @@ var _ImagePreloader = require('../utils/ImagePreloader');
 
 var _ImagePreloader2 = _interopRequireDefault(_ImagePreloader);
 
-var _index = require('../utils/index');
+var _index3 = require('../utils/index');
 
 var _ProjectInterface = require('../utils/ProjectInterface');
 
@@ -46,7 +50,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /* eslint-disable no-unused-expressions */
+
 
 var AnimationItem = function (_BaseEvent) {
   _inherits(AnimationItem, _BaseEvent);
@@ -75,22 +80,67 @@ var AnimationItem = function (_BaseEvent) {
     _this.autoplay = false;
     _this.loop = true;
     _this.renderer = null;
-    _this.animationID = (0, _index.randomString)(10);
+    _this.animationID = (0, _index3.randomString)(10);
     _this.assetsPath = '';
     _this.timeCompleted = 0;
     _this.segmentPos = 0;
-    _this.subframeEnabled = _index.subframeEnabled;
+    _this.subframeEnabled = _index3.subframeEnabled;
     _this.segments = [];
     _this._idle = true;
     _this.projectInterface = (0, _ProjectInterface2.default)();
+    _this.imagePreloader = new _ImagePreloader2.default();
     return _this;
   }
 
   _createClass(AnimationItem, [{
+    key: 'fixMissingApi',
+    value: function fixMissingApi(context) {
+      [{
+        fn: 'setGlobalAlpha',
+        key: 'globalAlpha'
+      }, {
+        fn: 'setFillStyle',
+        key: 'fillStyle'
+      }, {
+        fn: 'setFontSize',
+        key: 'font'
+      }, {
+        fn: 'setLineCap',
+        key: 'lineCap'
+      }, {
+        fn: 'setLineJoin',
+        key: 'lineJoin'
+      }, {
+        fn: 'setLineWidth',
+        key: 'lineWidth'
+      }, {
+        fn: 'setMiterLimit',
+        key: 'miterLimit'
+      }, {
+        fn: 'setStrokeStyle',
+        key: 'strokeStyle' /* {
+                            fn: 'setLineDash',
+                            key: 'lineDashOffset'
+                           } */ }].forEach(function (_ref) {
+        var fn = _ref.fn,
+            key = _ref.key;
+
+        if (typeof context[fn] !== 'function') {
+          Object.defineProperty(context, fn, {
+            value: function value(_value) {
+              context[key] = _value;
+            }
+          });
+        }
+      });
+    }
+  }, {
     key: 'setParams',
     value: function setParams(params) {
       var _this2 = this;
 
+      this.fixMissingApi(params.rendererSettings.context);
+      // 小程序中一些api需要context， 指向Page或者Component
       if (params.context) {
         this.context = params.context;
       }
@@ -113,23 +163,39 @@ var AnimationItem = function (_BaseEvent) {
         this.loop = parseInt(params.loop, 10);
       }
       this.autoplay = 'autoplay' in params ? params.autoplay : true;
+      this.hasTriggerplay = false;
       this.name = params.name ? params.name : '';
       this.autoloadSegments = params.autoloadSegments ? params.autoloadSegments : true;
       this.assetsPath = params.assetsPath;
       if (params.animationData) {
         this.configAnimation(params.animationData);
       } else if (params.path) {
-        var path = params.path;
-        this.path = path;
-        this.fileName = path.substr(params.path.lastIndexOf('/') + 1);
+        if (params.path.lastIndexOf('.zip') === -1) {
+          if (params.path.substr(-4) !== 'json') {
+            if (params.path.substr(-1, 1) !== '/') {
+              params.path += '/';
+            }
+            params.path += 'data.json';
+          }
+        }
 
-        _assetLoader2.default.load.call(this, path, this.configAnimation.bind(this));
+        if (params.path.lastIndexOf('\\') !== -1) {
+          this.path = params.path.substr(0, params.path.lastIndexOf('\\') + 1);
+        } else {
+          this.path = params.path.substr(0, params.path.lastIndexOf('/') + 1);
+        }
+        this.fileName = params.path.substr(params.path.lastIndexOf('/') + 1);
+        this.fileName = this.fileName.substr(0, this.fileName.lastIndexOf('.json'));
+
+        _assetLoader2.default.load.call(this, params.path, this.configAnimation.bind(this), function () {
+          this.trigger('data_failed');
+        }.bind(this));
       }
 
       // 判断是否在可视区域内
-      if (wx.createIntersectionObserver) {
+      if (_index2.default.createIntersectionObserver) {
         var canvasId = params.rendererSettings.context.canvasId;
-        var observer = wx.createIntersectionObserver();
+        var observer = _index2.default.createIntersectionObserver(this.context);
         this.$observer = observer;
         observer.relativeToViewport({
           bottom: 10,
@@ -137,6 +203,7 @@ var AnimationItem = function (_BaseEvent) {
           left: 0,
           right: 10
         }).observe('#' + canvasId, function (res) {
+          if (!_this2.hasTriggerplay) return;
           if (res.intersectionRatio > 0) {
             _this2.play();
           } else {
@@ -199,7 +266,9 @@ var AnimationItem = function (_BaseEvent) {
       this.timeCompleted = segment.time * this.frameRate;
       var segmentPath = this.path + this.fileName + '_' + this.segmentPos + '.json';
       this.segmentPos += 1;
-      _assetLoader2.default.load(segmentPath, this.includeLayers.bind(this));
+      _assetLoader2.default.load(segmentPath, this.includeLayers.bind(this), function () {
+        this.trigger('data_failed');
+      }.bind(this));
     }
   }, {
     key: 'loadSegments',
@@ -211,16 +280,18 @@ var AnimationItem = function (_BaseEvent) {
       this.loadNextSegment();
     }
   }, {
+    key: 'imagesLoaded',
+    value: function imagesLoaded() {
+      this.trigger('loaded_images');
+      this.checkLoaded();
+    }
+  }, {
     key: 'preloadImages',
     value: function preloadImages() {
-      this.imagePreloader = new _ImagePreloader2.default();
+      this.imagePreloader.setCanvas(this.renderer.renderConfig.canvas);
       this.imagePreloader.setAssetsPath(this.assetsPath);
       this.imagePreloader.setPath(this.path);
-      this.imagePreloader.loadAssets(this.animationData.assets, function (err) {
-        if (!err) {
-          this.trigger('loaded_images');
-        }
-      }.bind(this));
+      this.imagePreloader.loadAssets(this.animationData.assets, this.imagesLoaded.bind(this));
     }
   }, {
     key: 'configAnimation',
@@ -247,38 +318,23 @@ var AnimationItem = function (_BaseEvent) {
       this.waitForFontsLoaded();
     }
   }, {
-    key: 'completeData',
-    value: function completeData() {
-      _DataManager2.default.completeData(this.animationData, this.renderer.globalData.fontManager);
-      this.checkLoaded();
-    }
-  }, {
     key: 'waitForFontsLoaded',
     value: function waitForFontsLoaded() {
       if (!this.renderer) {
         return;
       }
       if (true /* this.renderer.globalData.fontManager.loaded */) {
-          this.completeData();
+          this.checkLoaded();
         } else {
         setTimeout(this.waitForFontsLoaded.bind(this), 20);
       }
     }
   }, {
-    key: 'addPendingElement',
-    value: function addPendingElement() {
-      this.pendingElements += 1;
-    }
-  }, {
-    key: 'elementLoaded',
-    value: function elementLoaded() {
-      this.pendingElements -= 1;
-      this.checkLoaded();
-    }
-  }, {
     key: 'checkLoaded',
     value: function checkLoaded() {
-      if (this.pendingElements === 0) {
+      if (!this.isLoaded && this.renderer.globalData.fontManager.loaded() && this.imagePreloader.loaded()) {
+        this.isLoaded = true;
+        _DataManager2.default.completeData(this.animationData, this.renderer.globalData.fontManager);
         if (_Expressions2.default) {
           _Expressions2.default.initExpressions(this);
         }
@@ -286,7 +342,6 @@ var AnimationItem = function (_BaseEvent) {
         setTimeout(function () {
           this.trigger('DOMLoaded');
         }.bind(this), 0);
-        this.isLoaded = true;
         this.gotoFrame();
         if (this.autoplay) {
           this.play();
@@ -320,7 +375,7 @@ var AnimationItem = function (_BaseEvent) {
       if (this.isLoaded === false) {
         return;
       }
-      this.renderer.renderFrame(this.currentFrame + this.firstFrame);
+      this.renderer && this.renderer.renderFrame(this.currentFrame + this.firstFrame);
     }
   }, {
     key: 'play',
@@ -332,6 +387,7 @@ var AnimationItem = function (_BaseEvent) {
         this.isPaused = false;
         if (this._idle) {
           this._idle = false;
+          this.hasTriggerplay = true;
           this.trigger('_active');
         }
       }

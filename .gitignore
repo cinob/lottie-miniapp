@@ -3,3 +3,4 @@ example/lottie
 example/project.config.json
 lib
 yarn-error*
+.DS_*

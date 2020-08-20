@@ -22,6 +22,8 @@ var _dynamicProperties = require('../dynamicProperties');
 
 var _dynamicProperties2 = _interopRequireDefault(_dynamicProperties);
 
+var _dynamicProperties3 = require('../helpers/dynamicProperties');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
@@ -71,14 +73,17 @@ var TextSelectorProp = function (_DynamicPropertyConta) {
 
     var _this = _possibleConstructorReturn(this, (TextSelectorProp.__proto__ || Object.getPrototypeOf(TextSelectorProp)).call(this));
 
-    _this._currentTextLength = -1;
+    _this.addDynamicProperty = _dynamicProperties3.addDynamicProperty;
+
+    _this._mdf = false;
     _this.k = false;
     _this.data = data;
+    _this.dynamicProperties = [];
     _this.elem = elem;
+    _this.container = elem;
     _this.comp = elem.comp;
     _this.finalS = 0;
     _this.finalE = 0;
-    _this.initDynamicPropertyContainer(elem);
     _this.s = _PropertyFactory2.default.getProp(elem, data.s || {
       k: 0
     }, 0, 0, _this);
@@ -150,7 +155,7 @@ var TextSelectorProp = function (_DynamicPropertyConta) {
         } else {
           var tot = e - s;
           /* ind += 0.5;
-          mult = -4/(tot*tot)*(ind*ind)+(4/tot)*ind; */
+            mult = -4/(tot*tot)*(ind*ind)+(4/tot)*ind; */
           ind = min(max(0, ind + 0.5 - s), e - s);
           var x = -tot / 2 + ind;
           var a = tot / 2;
@@ -164,9 +169,9 @@ var TextSelectorProp = function (_DynamicPropertyConta) {
           ind = min(max(0, ind + 0.5 - s), e - s);
           mult = (1 + Math.cos(Math.PI + Math.PI * 2 * ind / (e - s))) / 2;
           /*
-           ind = Math.min(Math.max(s,ind),e-1);
-           mult = (1+(Math.cos((Math.PI+Math.PI*2*(ind-s)/(e-1-s)))))/2;
-           mult = Math.max(mult,(1/(e-1-s))/(e-1-s)); */
+             ind = Math.min(Math.max(s,ind),e-1);
+             mult = (1+(Math.cos((Math.PI+Math.PI*2*(ind-s)/(e-1-s)))))/2;
+             mult = Math.max(mult,(1/(e-1-s))/(e-1-s)); */
         }
         mult = easer(mult);
       } else {
@@ -190,7 +195,7 @@ var TextSelectorProp = function (_DynamicPropertyConta) {
       if (newCharsFlag && this.data.r === 2) {
         this.e.v = this._currentTextLength;
       }
-      var divisor = this.data.r === 2 ? 1 : 100 / this._currentTextLength;
+      var divisor = this.data.r === 2 ? 1 : 100 / this.data.totalChars;
       var o = this.o.v / divisor;
       var s = this.s.v / divisor + o;
       var e = this.e.v / divisor + o;

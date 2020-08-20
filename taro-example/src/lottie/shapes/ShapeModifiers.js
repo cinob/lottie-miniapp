@@ -42,6 +42,8 @@ var ShapeModifier = exports.ShapeModifier = function (_DynamicPropertyConta) {
     key: 'addShape',
     value: function addShape(data) {
       if (!this.closed) {
+        // Adding shape to dynamic properties. It covers the case where a shape has no effects applied, to reset it's _mdf state on every tick.
+        data.sh.container.addDynamicProperty(data.sh);
         var shapeData = {
           shape: data.sh,
           data: data,

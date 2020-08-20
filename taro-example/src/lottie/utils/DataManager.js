@@ -127,17 +127,17 @@ function dataFunctionManager() {
     var animVersion = animVersionString ? animVersionString.split('.') : [100, 100, 100];
     if (minimum[0] > animVersion[0]) {
       return true;
-    } else if (animVersion[0] > minimum[0]) {
+    }if (animVersion[0] > minimum[0]) {
       return false;
     }
     if (minimum[1] > animVersion[1]) {
       return true;
-    } else if (animVersion[1] > minimum[1]) {
+    }if (animVersion[1] > minimum[1]) {
       return false;
     }
     if (minimum[2] > animVersion[2]) {
       return true;
-    } else if (animVersion[2] > minimum[2]) {
+    }if (animVersion[2] > minimum[2]) {
       return false;
     }
   }
@@ -278,7 +278,8 @@ function dataFunctionManager() {
   var checkShapes = function () {
     var minimumVersion = [4, 4, 18];
 
-    function completeShapesLocal(arr) {
+    // eslint-disable-next-line no-shadow
+    function completeShapes(arr) {
       var i = void 0;
       var len = arr.length;
       var j = void 0;
@@ -336,7 +337,7 @@ function dataFunctionManager() {
           }
         }
         if (layerData.ty === 4) {
-          completeShapesLocal(layerData.shapes);
+          completeShapes(layerData.shapes);
         }
       }
     }

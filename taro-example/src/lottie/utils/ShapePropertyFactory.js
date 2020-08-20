@@ -75,7 +75,7 @@ var ShapePropertyFactory = (_class = function () {
       if (type === 3 || type === 4) {
         var dataProp = type === 3 ? data.pt : data.ks;
         var keys = dataProp.k;
-        if (dataProp.a === 1 || keys.length) {
+        if (keys.length) {
           prop = new _KeyframedShapeProperty2.default(elem, data, type);
         } else {
           prop = new _ShapeProperty2.default(elem, data, type);

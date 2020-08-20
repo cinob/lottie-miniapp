@@ -15,11 +15,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var CVShapeData = function () {
-  function CVShapeData(element, data) {
+  function CVShapeData(element, data, styles, transformsManager) {
     _classCallCheck(this, CVShapeData);
 
-    this.nodes = [];
-    this.trNodes = [];
+    this.styledShapes = [];
     this.tr = [0, 0, 0, 0, 0, 0];
     var ty = 4;
     if (data.ty === 'rc') {
@@ -30,8 +29,19 @@ var CVShapeData = function () {
       ty = 7;
     }
     this.sh = _ShapePropertyFactory2.default.getShapeProp(element, data, ty, element);
-    this.st = false;
-    this.fl = false;
+    var i = void 0;
+    var len = styles.length;
+    var styledShape = void 0;
+    for (i = 0; i < len; i += 1) {
+      if (!styles[i].closed) {
+        styledShape = {
+          transforms: transformsManager.addTransformSequence(styles[i].transforms),
+          trNodes: []
+        };
+        this.styledShapes.push(styledShape);
+        styles[i].elements.push(styledShape);
+      }
+    }
   }
 
   _createClass(CVShapeData, [{

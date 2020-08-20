@@ -9,6 +9,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _index = require('../index');
 
+var _transformationMatrix = require('../../3rd_party/transformation-matrix');
+
+var _transformationMatrix2 = _interopRequireDefault(_transformationMatrix);
+
 var _PropertyFactory = require('../PropertyFactory');
 
 var _PropertyFactory2 = _interopRequireDefault(_PropertyFactory);
@@ -27,30 +31,44 @@ var _LetterProps = require('../LetterProps');
 
 var _LetterProps2 = _interopRequireDefault(_LetterProps);
 
+var _dynamicProperties = require('../dynamicProperties');
+
+var _dynamicProperties2 = _interopRequireDefault(_dynamicProperties);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var TextAnimatorProperty = function () {
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var TextAnimatorProperty = function (_DynamicPropertyConta) {
+  _inherits(TextAnimatorProperty, _DynamicPropertyConta);
+
   function TextAnimatorProperty(textData, renderType, elem) {
     _classCallCheck(this, TextAnimatorProperty);
 
-    this._mdf = false;
-    this._isFirstFrame = true;
-    this._hasMaskedPath = false;
-    this._frameId = -1;
-    this.dynamicProperties = [];
-    this._textData = textData;
-    this._renderType = renderType;
-    this._elem = elem;
-    this.container = elem;
-    this._animatorsData = (0, _index.createSizedArray)(this._textData.a.length);
-    this._pathData = {};
-    this._moreOptions = {
+    var _this = _possibleConstructorReturn(this, (TextAnimatorProperty.__proto__ || Object.getPrototypeOf(TextAnimatorProperty)).call(this));
+
+    _this.mHelper = new _transformationMatrix2.default();
+    _this.defaultPropsArray = [];
+
+    _this._isFirstFrame = true;
+    _this._hasMaskedPath = false;
+    _this._frameId = -1;
+    _this._textData = textData;
+    _this._renderType = renderType;
+    _this._elem = elem;
+    _this._animatorsData = (0, _index.createSizedArray)(_this._textData.a.length);
+    _this._pathData = {};
+    _this._moreOptions = {
       alignment: {}
     };
-    this.renderedLetters = [];
-    this.lettersChangedFlag = false;
+    _this.renderedLetters = [];
+    _this.lettersChangedFlag = false;
+    _this.initDynamicPropertyContainer(elem);
+    return _this;
   }
 
   _createClass(TextAnimatorProperty, [{
@@ -130,32 +148,20 @@ var TextAnimatorProperty = function () {
             segments: []
           };
           len = paths._length - 1;
-          var pathData = void 0;
+          var bezierData = void 0;
           totalLength = 0;
           for (i = 0; i < len; i += 1) {
-            pathData = {
-              s: paths.v[i],
-              e: paths.v[i + 1],
-              to: [paths.o[i][0] - paths.v[i][0], paths.o[i][1] - paths.v[i][1]],
-              ti: [paths.i[i + 1][0] - paths.v[i + 1][0], paths.i[i + 1][1] - paths.v[i + 1][1]]
-            };
-            _bez2.default.buildBezierData(pathData);
-            pathInfo.tLength += pathData.bezierData.segmentLength;
-            pathInfo.segments.push(pathData);
-            totalLength += pathData.bezierData.segmentLength;
+            bezierData = _bez2.default.buildBezierData(paths.v[i], paths.v[i + 1], [paths.o[i][0] - paths.v[i][0], paths.o[i][1] - paths.v[i][1]], [paths.i[i + 1][0] - paths.v[i + 1][0], paths.i[i + 1][1] - paths.v[i + 1][1]]);
+            pathInfo.tLength += bezierData.segmentLength;
+            pathInfo.segments.push(bezierData);
+            totalLength += bezierData.segmentLength;
           }
           i = len;
           if (mask.v.c) {
-            pathData = {
-              s: paths.v[i],
-              e: paths.v[0],
-              to: [paths.o[i][0] - paths.v[i][0], paths.o[i][1] - paths.v[i][1]],
-              ti: [paths.i[0][0] - paths.v[0][0], paths.i[0][1] - paths.v[0][1]]
-            };
-            _bez2.default.buildBezierData(pathData);
-            pathInfo.tLength += pathData.bezierData.segmentLength;
-            pathInfo.segments.push(pathData);
-            totalLength += pathData.bezierData.segmentLength;
+            bezierData = _bez2.default.buildBezierData(paths.v[i], paths.v[0], [paths.o[i][0] - paths.v[i][0], paths.o[i][1] - paths.v[i][1]], [paths.i[0][0] - paths.v[0][0], paths.i[0][1] - paths.v[0][1]]);
+            pathInfo.tLength += bezierData.segmentLength;
+            pathInfo.segments.push(bezierData);
+            totalLength += bezierData.segmentLength;
           }
           this._pathData.pi = pathInfo;
         }
@@ -172,19 +178,19 @@ var TextAnimatorProperty = function () {
             currentLength = -Math.abs(currentLength) % pathInfo.tLength;
           }
           segmentInd = segments.length - 1;
-          points = segments[segmentInd].bezierData.points;
+          points = segments[segmentInd].points;
           pointInd = points.length - 1;
           while (currentLength < 0) {
             currentLength += points[pointInd].partialLength;
             pointInd -= 1;
             if (pointInd < 0) {
               segmentInd -= 1;
-              points = segments[segmentInd].bezierData.points;
+              points = segments[segmentInd].points;
               pointInd = points.length - 1;
             }
           }
         }
-        points = segments[segmentInd].bezierData.points;
+        points = segments[segmentInd].points;
         prevPoint = points[pointInd - 1];
         currentPoint = points[pointInd];
         partialLength = currentPoint.partialLength;
@@ -287,7 +293,7 @@ var TextAnimatorProperty = function () {
           if (this._hasMaskedPath) {
             segmentInd = initSegmentInd;
             pointInd = initPointInd;
-            points = segments[segmentInd].bezierData.points;
+            points = segments[segmentInd].points;
             prevPoint = points[pointInd - 1];
             currentPoint = points[pointInd];
             partialLength = currentPoint.partialLength;
@@ -298,14 +304,13 @@ var TextAnimatorProperty = function () {
         } else {
           if (this._hasMaskedPath) {
             if (currentLine !== letters[i].line) {
+              // eslint-disable-next-line default-case
               switch (documentData.j) {
                 case 1:
                   currentLength += totalLength - documentData.lineWidths[letters[i].line];
                   break;
                 case 2:
                   currentLength += (totalLength - documentData.lineWidths[letters[i].line]) / 2;
-                  break;
-                default:
                   break;
               }
               currentLine = letters[i].line;
@@ -358,13 +363,13 @@ var TextAnimatorProperty = function () {
                     if (mask.v.c) {
                       pointInd = 0;
                       segmentInd = 0;
-                      points = segments[segmentInd].bezierData.points;
+                      points = segments[segmentInd].points;
                     } else {
                       segmentLength -= currentPoint.partialLength;
                       points = null;
                     }
                   } else {
-                    points = segments[segmentInd].bezierData.points;
+                    points = segments[segmentInd].points;
                   }
                 }
                 if (points) {
@@ -494,9 +499,9 @@ var TextAnimatorProperty = function () {
             if (documentData.strokeColorAnim && animatorProps.sc.propType) {
               for (k = 0; k < 3; k += 1) {
                 if (mult.length) {
-                  sc[k] += (animatorProps.sc.v[k] - sc[k]) * mult[0];
+                  sc[k] = sc[k] + (animatorProps.sc.v[k] - sc[k]) * mult[0];
                 } else {
-                  sc[k] += (animatorProps.sc.v[k] - sc[k]) * mult;
+                  sc[k] = sc[k] + (animatorProps.sc.v[k] - sc[k]) * mult;
                 }
               }
             }
@@ -504,9 +509,9 @@ var TextAnimatorProperty = function () {
               if (animatorProps.fc.propType) {
                 for (k = 0; k < 3; k += 1) {
                   if (mult.length) {
-                    fc[k] += (animatorProps.fc.v[k] - fc[k]) * mult[0];
+                    fc[k] = fc[k] + (animatorProps.fc.v[k] - fc[k]) * mult[0];
                   } else {
-                    fc[k] += (animatorProps.fc.v[k] - fc[k]) * mult;
+                    fc[k] = fc[k] + (animatorProps.fc.v[k] - fc[k]) * mult;
                   }
                 }
               }
@@ -588,14 +593,13 @@ var TextAnimatorProperty = function () {
               // matrixHelper.translate(documentData.ps[0],documentData.ps[1],0);
               matrixHelper.translate(documentData.ps[0], documentData.ps[1] + documentData.ascent, 0);
             }
+            // eslint-disable-next-line default-case
             switch (documentData.j) {
               case 1:
                 matrixHelper.translate(letters[i].animatorJustifyOffset + documentData.justifyOffset + (documentData.boxWidth - documentData.lineWidths[letters[i].line]), 0, 0);
                 break;
               case 2:
                 matrixHelper.translate(letters[i].animatorJustifyOffset + documentData.justifyOffset + (documentData.boxWidth - documentData.lineWidths[letters[i].line]) / 2, 0, 0);
-                break;
-              default:
                 break;
             }
             matrixHelper.translate(0, -documentData.ls);
@@ -624,9 +628,18 @@ var TextAnimatorProperty = function () {
         }
       }
     }
+  }, {
+    key: 'getValue',
+    value: function getValue() {
+      if (this._elem.globalData.frameId === this._frameId) {
+        return;
+      }
+      this._frameId = this._elem.globalData.frameId;
+      this.iterateDynamicProperties();
+    }
   }]);
 
   return TextAnimatorProperty;
-}();
+}(_dynamicProperties2.default);
 
 exports.default = TextAnimatorProperty;

@@ -27,6 +27,7 @@ var AnimationManager = function () {
     this.playingAnimationsNum = 0;
     this._stopped = true;
     this._isFrozen = false;
+    this.raf = _index.raf;
   }
 
   _createClass(AnimationManager, [{
@@ -88,6 +89,9 @@ var AnimationManager = function () {
       var animItem = new _AnimationItem2.default();
       this.setupAnimation(animItem, null);
       animItem.setParams(params);
+      if (params.rendererSettings && params.rendererSettings.canvas && params.rendererSettings.canvas.requestAnimationFrame) {
+        this.raf = params.rendererSettings.canvas.requestAnimationFrame.bind(params.rendererSettings.canvas);
+      }
       return animItem;
     }
   }, {
@@ -128,7 +132,7 @@ var AnimationManager = function () {
       }
       this.initTime = nowTime;
       if (this.playingAnimationsNum && !this._isFrozen) {
-        (0, _index.raf)(this.resume.bind(this));
+        this.raf(this.resume.bind(this));
       } else {
         this._stopped = true;
       }
@@ -137,7 +141,7 @@ var AnimationManager = function () {
     key: 'first',
     value: function first(nowTime) {
       this.initTime = nowTime;
-      (0, _index.raf)(this.resume.bind(this));
+      this.raf(this.resume.bind(this));
     }
   }, {
     key: 'pause',
@@ -200,7 +204,7 @@ var AnimationManager = function () {
     value: function activate() {
       if (!this._isFrozen && this.playingAnimationsNum) {
         if (this._stopped) {
-          (0, _index.raf)(this.first.bind(this));
+          this.raf(this.first.bind(this));
           this._stopped = false;
         }
       }

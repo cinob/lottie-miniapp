@@ -4,13 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _ExpressionValue = require('./ExpressionValue');
-
-var _ExpressionValue2 = _interopRequireDefault(_ExpressionValue);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var degToRads = Math.PI / 180;
+var _ExpressionValueFactory = require('../expressions/ExpressionValueFactory');
 
 exports.default = function (transform) {
   /* eslint consistent-return: 0 */
@@ -58,86 +52,67 @@ exports.default = function (transform) {
   }
 
   Object.defineProperty(thisFunction, 'rotation', {
-    get: function rotation() {
-      if (transform.r) {
-        return (0, _ExpressionValue2.default)(transform.r, 1 / degToRads);
-      }
-      return (0, _ExpressionValue2.default)(transform.rz, 1 / degToRads);
-    }
+    get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(transform.r || transform.rz)
+  });
+
+  Object.defineProperty(thisFunction, 'zRotation', {
+    get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(transform.rz || transform.r)
   });
 
   Object.defineProperty(thisFunction, 'xRotation', {
-    get: function get() {
-      return (0, _ExpressionValue2.default)(transform.rx, 1 / degToRads);
-    }
+    get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(transform.rx)
   });
 
   Object.defineProperty(thisFunction, 'yRotation', {
-    get: function get() {
-      return (0, _ExpressionValue2.default)(transform.ry, 1 / degToRads);
-    }
+    get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(transform.ry)
   });
   Object.defineProperty(thisFunction, 'scale', {
-    get: function get() {
-      return (0, _ExpressionValue2.default)(transform.s, 100);
-    }
+    get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(transform.s)
   });
 
+  var _transformFactory = void 0;
+  if (transform.p) {
+    _transformFactory = (0, _ExpressionValueFactory.ExpressionPropertyInterface)(transform.p);
+  }
   Object.defineProperty(thisFunction, 'position', {
     get: function get() {
       if (transform.p) {
-        return (0, _ExpressionValue2.default)(transform.p);
+        return _transformFactory();
       }
       return [transform.px.v, transform.py.v, transform.pz ? transform.pz.v : 0];
     }
   });
 
   Object.defineProperty(thisFunction, 'xPosition', {
-    get: function get() {
-      return (0, _ExpressionValue2.default)(transform.px);
-    }
+    get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(transform.px)
   });
 
   Object.defineProperty(thisFunction, 'yPosition', {
-    get: function get() {
-      return (0, _ExpressionValue2.default)(transform.py);
-    }
+    get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(transform.py)
   });
 
   Object.defineProperty(thisFunction, 'zPosition', {
-    get: function get() {
-      return (0, _ExpressionValue2.default)(transform.pz);
-    }
+    get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(transform.pz)
   });
 
   Object.defineProperty(thisFunction, 'anchorPoint', {
-    get: function get() {
-      return (0, _ExpressionValue2.default)(transform.a);
-    }
+    get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(transform.a)
   });
 
   Object.defineProperty(thisFunction, 'opacity', {
-    get: function get() {
-      return (0, _ExpressionValue2.default)(transform.o, 100);
-    }
+    get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(transform.o)
   });
 
   Object.defineProperty(thisFunction, 'skew', {
-    get: function get() {
-      return (0, _ExpressionValue2.default)(transform.sk);
-    }
+    get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(transform.sk)
   });
 
   Object.defineProperty(thisFunction, 'skewAxis', {
-    get: function get() {
-      return (0, _ExpressionValue2.default)(transform.sa);
-    }
+    get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(transform.sa)
   });
 
   Object.defineProperty(thisFunction, 'orientation', {
-    get: function get() {
-      return (0, _ExpressionValue2.default)(transform.or);
-    }
+    get: (0, _ExpressionValueFactory.ExpressionPropertyInterface)(transform.or)
   });
 
   return thisFunction;

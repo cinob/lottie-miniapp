@@ -10,6 +10,8 @@ var _transformationMatrix = require('../3rd_party/transformation-matrix');
 
 var _transformationMatrix2 = _interopRequireDefault(_transformationMatrix);
 
+var _index = require('../utils/index');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -24,9 +26,9 @@ var CVContextData = function () {
     this.cO = 1;
     var i = void 0;
     var len = 15;
-    this.savedOp = new Float32Array(len);
+    this.savedOp = (0, _index.createTypedArray)('float32', len);
     for (i = 0; i < len; i += 1) {
-      this.saved[i] = new Float32Array(16);
+      this.saved[i] = (0, _index.createTypedArray)('float32', 16);
     }
     this._length = len;
   }
@@ -36,11 +38,11 @@ var CVContextData = function () {
     value: function duplicate() {
       var newLength = this._length * 2;
       var currentSavedOp = this.savedOp;
-      this.savedOp = new Float32Array(newLength);
+      this.savedOp = (0, _index.createTypedArray)('float32', newLength);
       this.savedOp.set(currentSavedOp);
       var i = 0;
       for (i = this._length; i < newLength; i += 1) {
-        this.saved[i] = new Float32Array(16);
+        this.saved[i] = (0, _index.createTypedArray)('float32', 16);
       }
       this._length = newLength;
     }

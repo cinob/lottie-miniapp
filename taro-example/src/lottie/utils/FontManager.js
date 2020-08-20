@@ -3,8 +3,15 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.FontManager = exports.Font = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _index = require('../platform/index');
+
+var _index2 = _interopRequireDefault(_index);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -86,8 +93,8 @@ var Font = function () {
           _pendingFonts -= 1;
         } else if (fontArr[i].fOrigin === 'p' || fontArr[i].origin === 3) {
           if (shouldLoadFont) {
-            if (wx.loadFontFace) {
-              wx.loadFontFace({
+            if (_index2.default.loadFontFace) {
+              _index2.default.loadFontFace({
                 family: fontArr[i].fFamily,
                 source: fontArr[i].fPath,
                 fail: function fail(e) {
@@ -131,6 +138,9 @@ var Font = function () {
     key: 'getCharData',
     value: function getCharData(char, style, font) {
       var i = 0;
+      if (!this.chars) {
+        return emptyChar;
+      }
       var len = this.chars.length;
       while (i < len) {
         if (this.chars[i].ch === char && this.chars[i].style === style && this.chars[i].fFamily === font) {
@@ -138,7 +148,7 @@ var Font = function () {
         }
         i += 1;
       }
-      if (console.warn) {
+      if ((typeof char === 'string' && char.charCodeAt(0) !== 13 || !char) && console && console.warn) {
         console.warn('Missing character from exported characters list: ', char, style, font);
       }
       return emptyChar;
