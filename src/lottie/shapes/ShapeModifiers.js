@@ -3,10 +3,14 @@ import DynamicPropertyContainer from '../utils/dynamicProperties';
 
 export class ShapeModifier extends DynamicPropertyContainer {
   initModifierProperties() {}
+
   addShapeToModifier() {}
+
   addShape(data) {
     if (!this.closed) {
-      const shapeData = {
+      // Adding shape to dynamic properties. It covers the case where a shape has no effects applied, to reset it's _mdf state on every tick.
+      data.sh.container.addDynamicProperty(data.sh);
+      let shapeData = {
         shape: data.sh,
         data: data,
         localShapeCollection: shapeCollection_pool.newShapeCollection()
@@ -18,6 +22,7 @@ export class ShapeModifier extends DynamicPropertyContainer {
       }
     }
   }
+
   init(elem, data) {
     this.shapes = [];
     this.elem = elem;
@@ -32,6 +37,7 @@ export class ShapeModifier extends DynamicPropertyContainer {
       this.getValue(true);
     }
   }
+
   processKeys() {
     if (this.elem.globalData.frameId === this.frameId) {
       return;

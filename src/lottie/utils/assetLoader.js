@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+import api, { getUserDataPath } from '../platform/index';
 export default {
   // load json
   load: function assetLoader(path, callback, error_callback) {
@@ -8,9 +10,12 @@ export default {
         .then(({ data, tempDir }) => {
           self.path = tempDir;
           callback(data);
+        }).catch((err) => {
+          if (typeof error_callback !== 'function') return;
+          error_callback(err);
         });
     }
-    wx.request({
+    api.request({
       url: path,
       success(res) {
         callback(res.data);
@@ -23,11 +28,11 @@ export default {
   }
 };
 
-const fs = wx.getFileSystemManager();
+const fs = typeof api.getFileSystemManager === 'function' ? api.getFileSystemManager() : {};
 
 export function downloadZip(url) {
   return new Promise(resolve => {
-    wx.downloadFile({
+    api.downloadFile({
       url,
       success(res) {
         console.log('downloadZip', res);
@@ -37,13 +42,27 @@ export function downloadZip(url) {
   });
 }
 
-export function unzipFile(tempFilePath, targetPath = `${wx.env.USER_DATA_PATH}/tmp-unzip`) {
-  return new Promise(resolve => {
+/**
+ * 确保路径存在
+ */
+function ensureDir(dir) {
+  const dirs = dir.split('/');
+  let len = dirs.length;
+  let i = 1;
+  while (i <= len) {
+    const targetPath = dirs.slice(0, i).join('/');
     try {
-      fs.rmdirSync(targetPath, true);
+      fs.mkdirSync(targetPath);
     } catch (error) {
-      // ignore
+      console.warn(`ensureDir [${targetPath}]`, error);
     }
+    i++;
+  }
+}
+
+export function unzipFile(tempFilePath, targetPath = `${getUserDataPath()}/tmp-unzip`) {
+  return new Promise(resolve => {
+    ensureDir(targetPath);
     fs.unzip({
       targetPath,
       zipFilePath: tempFilePath,
@@ -82,9 +101,10 @@ export function getFileTree(dir, tree = {}) {
 
 export function loadZipFiles(url) {
   let tempDir = '';
+  const unzipDir = `${getUserDataPath()}/tmp-unzip/${easyHashCode(url)}`;
   return downloadZip(url)
     .then(tempFilePath => {
-      return unzipFile(tempFilePath);
+      return unzipFile(tempFilePath, unzipDir);
     })
     .then(({ targetPath }) => {
       tempDir = `${targetPath}/`;
@@ -99,3 +119,15 @@ export function loadZipFiles(url) {
     });
 }
 
+function easyHashCode(str = '') {
+  const len = str.length;
+  let i = 0;
+  let hash = 0;
+  while (i < len) {
+    const character = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + character;
+    hash = hash & hash;
+    i++;
+  }
+  return Math.abs(`${hash}`.toString(16));
+}

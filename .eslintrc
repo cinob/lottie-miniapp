@@ -9,6 +9,10 @@
   ],
   "globals": {
     "wx": true,
+    "my": true,
+    "tt": true,
+    "swan": true,
+    "qq": true,
     "Float32Array": true,
     "Int16Array": true,
     "Uint8ClampedArray": true,
@@ -16,10 +20,13 @@
     "Component": true
   },
   "rules": {
-    "no-use-before-define": ["error", {
-      "functions": false,
-      "classes": false
-    }],
+    "no-use-before-define": [
+      "error",
+      {
+        "functions": false,
+        "classes": false
+      }
+    ],
     "no-underscore-dangle": 0,
     "camelcase": 0,
     "class-methods-use-this": 0,
@@ -33,6 +40,9 @@
     "func-names": 0,
     "no-nested-ternary": 0,
     "no-bitwise": 0,
-    "no-restricted-globals": 0
+    "no-restricted-globals": 0,
+    "operator-assignment": 0,
+    "no-prototype-builtins": 0,
+    "max-classes-per-file": 0
   }
 }

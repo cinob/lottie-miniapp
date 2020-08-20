@@ -122,17 +122,17 @@ function dataFunctionManager() {
     let animVersion = animVersionString ? animVersionString.split('.') : [100, 100, 100];
     if (minimum[0] > animVersion[0]) {
       return true;
-    } else if (animVersion[0] > minimum[0]) {
+    } if (animVersion[0] > minimum[0]) {
       return false;
     }
     if (minimum[1] > animVersion[1]) {
       return true;
-    } else if (animVersion[1] > minimum[1]) {
+    } if (animVersion[1] > minimum[1]) {
       return false;
     }
     if (minimum[2] > animVersion[2]) {
       return true;
-    } else if (animVersion[2] > minimum[2]) {
+    } if (animVersion[2] > minimum[2]) {
       return false;
     }
   }
@@ -208,7 +208,7 @@ function dataFunctionManager() {
     };
   }());
 
-  let checkColors = (function () {
+  const checkColors = (function () {
     let minimumVersion = [4, 1, 9];
 
     function iterateShapes(shapes) {
@@ -272,11 +272,12 @@ function dataFunctionManager() {
     };
   }());
 
-  let checkShapes = (function () {
+  const checkShapes = (function () {
     let minimumVersion = [4, 4, 18];
 
 
-    function completeShapesLocal(arr) {
+    // eslint-disable-next-line no-shadow
+    function completeShapes(arr) {
       let i;
       let len = arr.length;
       let j;
@@ -334,7 +335,7 @@ function dataFunctionManager() {
           }
         }
         if (layerData.ty === 4) {
-          completeShapesLocal(layerData.shapes);
+          completeShapes(layerData.shapes);
         }
       }
     }

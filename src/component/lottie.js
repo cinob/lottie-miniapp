@@ -1,5 +1,5 @@
 
-import lottie from '../lottie/index.js';
+import lottie, { api } from '../lottie/index.js';
 
 Component({
   properties: {
@@ -22,6 +22,14 @@ Component({
       observer() {
         this.init();
       }
+    },
+    loop: {
+      type: Boolean,
+      value: true
+    },
+    autoplay: {
+      type: Boolean,
+      value: true
     }
   },
   ready() {
@@ -37,7 +45,7 @@ Component({
 
       this.destory();
 
-      let canvasContext = wx.createCanvasContext('lottie-canvas', this);
+      let canvasContext = api.createCanvasContext('lottie-canvas', this);
       canvasContext.canvas = {
         width: width,
         height: height
@@ -45,8 +53,8 @@ Component({
 
       this.lottie = lottie.loadAnimation({
         renderer: 'canvas', // 只支持canvas
-        loop: true,
-        autoplay: true,
+        loop: this.data.loop,
+        autoplay: this.data.autoplay,
         animationData: data,
         path: dataPath,
         rendererSettings: {

@@ -1,4 +1,6 @@
-import { interpolateShape, processEffectsSequence, resetShape, addEffect, interpolateShapeCurrentTime, initFrame } from './index';
+import {
+  interpolateShape, processEffectsSequence, resetShape, addEffect, setVValue, interpolateShapeCurrentTime, initFrame
+} from './index';
 import shape_pool from '../pooling/shape_pool';
 import shapeCollection_pool from '../pooling/shapeCollection_pool';
 import ShapeExpressions from '../expressions/ShapeExpressions';
@@ -34,11 +36,14 @@ class KeyframedShapeProperty extends ShapeExpressions {
     this.effectsSequence = [interpolateShapeCurrentTime.bind(this)];
   }
 
-  getValue=processEffectsSequence
-  interpolateShape =interpolateShape
-  addEffect=addEffect
   getShapeValueAtTime=getShapeValueAtTime
+
   initiateExpression=ExpressionManager.initiateExpression
 }
+
+KeyframedShapeProperty.prototype.getValue = processEffectsSequence;
+KeyframedShapeProperty.prototype.interpolateShape = interpolateShape;
+KeyframedShapeProperty.prototype.setVValue = setVValue;
+KeyframedShapeProperty.prototype.addEffect = addEffect;
 
 export default KeyframedShapeProperty;

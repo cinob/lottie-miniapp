@@ -1,3 +1,5 @@
+import api from '../platform/index';
+
 /* eslint-disable vars-on-top */
 var emptyChar = {
   w: 0,
@@ -77,8 +79,8 @@ class Font {
         _pendingFonts -= 1;
       } else if (fontArr[i].fOrigin === 'p' || fontArr[i].origin === 3) {
         if (shouldLoadFont) {
-          if (wx.loadFontFace) {
-            wx.loadFontFace({
+          if (api.loadFontFace) {
+            api.loadFontFace({
               family: fontArr[i].fFamily,
               source: fontArr[i].fPath,
               fail(e) {
@@ -119,6 +121,9 @@ class Font {
 
   getCharData(char, style, font) {
     let i = 0;
+    if (!this.chars) {
+      return emptyChar;
+    }
     const len = this.chars.length;
     while (i < len) {
       if (this.chars[i].ch === char && this.chars[i].style === style && this.chars[i].fFamily === font) {
@@ -126,7 +131,7 @@ class Font {
       }
       i += 1;
     }
-    if (console.warn) {
+    if ((typeof char === 'string' && char.charCodeAt(0) !== 13 || !char) && console && console.warn) {
       console.warn('Missing character from exported characters list: ', char, style, font);
     }
     return emptyChar;
@@ -143,6 +148,7 @@ class Font {
     }
     return this.fonts[0];
   }
+
   measureText(/* char, fontName, size */) {
     return 0;
   }

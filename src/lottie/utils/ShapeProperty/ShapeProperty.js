@@ -1,4 +1,6 @@
-import { interpolateShape, processEffectsSequence, resetShape, addEffect } from './index';
+import {
+  interpolateShape, processEffectsSequence, resetShape, addEffect, setVValue
+} from './index';
 import shape_pool from '../pooling/shape_pool';
 import shapeCollection_pool from '../pooling/shapeCollection_pool';
 import ShapeExpressions from '../expressions/ShapeExpressions';
@@ -23,10 +25,11 @@ class ShapeProperty extends ShapeExpressions {
     this.reset = resetShape;
     this.effectsSequence = [];
   }
-
-  addEffect=addEffect
-  interpolateShape=interpolateShape
-  getValue =processEffectsSequence
 }
+
+ShapeProperty.prototype.interpolateShape = interpolateShape;
+ShapeProperty.prototype.getValue = processEffectsSequence;
+ShapeProperty.prototype.setVValue = setVValue;
+ShapeProperty.prototype.addEffect = addEffect;
 
 export default ShapeProperty;

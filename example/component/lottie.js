@@ -27,6 +27,14 @@ Component({
       observer: function observer() {
         this.init();
       }
+    },
+    loop: {
+      type: Boolean,
+      value: true
+    },
+    autoplay: {
+      type: Boolean,
+      value: true
     }
   },
   ready: function ready() {
@@ -46,7 +54,7 @@ Component({
 
       this.destory();
 
-      var canvasContext = wx.createCanvasContext('lottie-canvas', this);
+      var canvasContext = _index.api.createCanvasContext('lottie-canvas', this);
       canvasContext.canvas = {
         width: width,
         height: height
@@ -54,8 +62,8 @@ Component({
 
       this.lottie = _index2.default.loadAnimation({
         renderer: 'canvas', // 只支持canvas
-        loop: true,
-        autoplay: true,
+        loop: this.data.loop,
+        autoplay: this.data.autoplay,
         animationData: data,
         path: dataPath,
         rendererSettings: {

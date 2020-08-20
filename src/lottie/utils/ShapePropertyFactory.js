@@ -12,7 +12,7 @@ class ShapePropertyFactory {
     if (type === 3 || type === 4) {
       let dataProp = type === 3 ? data.pt : data.ks;
       let keys = dataProp.k;
-      if (dataProp.a === 1 || keys.length) {
+      if (keys.length) {
         prop = new KeyframedShapeProperty(elem, data, type);
       } else {
         prop = new ShapeProperty(elem, data, type);
@@ -29,9 +29,11 @@ class ShapePropertyFactory {
     }
     return prop;
   }
+
   getConstructorFunction() {
     return ShapeProperty;
   }
+
   getKeyframedConstructorFunction() {
     return KeyframedShapeProperty;
   }

@@ -1,7 +1,11 @@
+/* eslint-disable no-unused-expressions */
+import api from '../platform/index';
 import CanvasRenderer from '../renderers/CanvasRenderer';
 import assetLoader from '../utils/assetLoader';
 import BaseEvent from '../utils/BaseEvent';
-import { BMCompleteEvent, BMCompleteLoopEvent, BMDestroyEvent, BMEnterFrameEvent, BMSegmentStartEvent } from '../utils/common';
+import {
+  BMCompleteEvent, BMCompleteLoopEvent, BMDestroyEvent, BMEnterFrameEvent, BMSegmentStartEvent
+} from '../utils/common';
 import dataManager from '../utils/DataManager';
 import expressionsPlugin from '../utils/expressions/Expressions';
 import ImagePreloader from '../utils/ImagePreloader';
@@ -38,9 +42,51 @@ class AnimationItem extends BaseEvent {
     this.segments = [];
     this._idle = true;
     this.projectInterface = ProjectInterface();
+    this.imagePreloader = new ImagePreloader();
+  }
+
+  fixMissingApi(context) {
+    [{
+      fn: 'setGlobalAlpha',
+      key: 'globalAlpha'
+    }, {
+      fn: 'setFillStyle',
+      key: 'fillStyle'
+    }, {
+      fn: 'setFontSize',
+      key: 'font'
+    }, {
+      fn: 'setLineCap',
+      key: 'lineCap'
+    }, {
+      fn: 'setLineJoin',
+      key: 'lineJoin'
+    }, {
+      fn: 'setLineWidth',
+      key: 'lineWidth'
+    }, {
+      fn: 'setMiterLimit',
+      key: 'miterLimit'
+    }, {
+      fn: 'setStrokeStyle',
+      key: 'strokeStyle'
+    }/* {
+      fn: 'setLineDash',
+      key: 'lineDashOffset'
+    } */].forEach(({ fn, key }) => {
+      if (typeof context[fn] !== 'function') {
+        Object.defineProperty(context, fn, {
+          value: function (value) {
+            context[key] = value;
+          }
+        });
+      }
+    });
   }
 
   setParams(params) {
+    this.fixMissingApi(params.rendererSettings.context);
+    // 小程序中一些api需要context， 指向Page或者Component
     if (params.context) {
       this.context = params.context;
     }
@@ -63,23 +109,39 @@ class AnimationItem extends BaseEvent {
       this.loop = parseInt(params.loop, 10);
     }
     this.autoplay = 'autoplay' in params ? params.autoplay : true;
+    this.hasTriggerplay = false;
     this.name = params.name ? params.name : '';
     this.autoloadSegments = params.autoloadSegments ? params.autoloadSegments : true;
     this.assetsPath = params.assetsPath;
     if (params.animationData) {
       this.configAnimation(params.animationData);
     } else if (params.path) {
-      const path = params.path;
-      this.path = path;
-      this.fileName = path.substr(params.path.lastIndexOf('/') + 1);
+      if (params.path.lastIndexOf('.zip') === -1) {
+        if (params.path.substr(-4) !== 'json') {
+          if (params.path.substr(-1, 1) !== '/') {
+            params.path += '/';
+          }
+          params.path += 'data.json';
+        }
+      }
 
-      assetLoader.load.call(this, path, this.configAnimation.bind(this));
+      if (params.path.lastIndexOf('\\') !== -1) {
+        this.path = params.path.substr(0, params.path.lastIndexOf('\\') + 1);
+      } else {
+        this.path = params.path.substr(0, params.path.lastIndexOf('/') + 1);
+      }
+      this.fileName = params.path.substr(params.path.lastIndexOf('/') + 1);
+      this.fileName = this.fileName.substr(0, this.fileName.lastIndexOf('.json'));
+
+      assetLoader.load.call(this, params.path, this.configAnimation.bind(this), function () {
+        this.trigger('data_failed');
+      }.bind(this));
     }
 
     // 判断是否在可视区域内
-    if (wx.createIntersectionObserver) {
+    if (api.createIntersectionObserver) {
       const canvasId = params.rendererSettings.context.canvasId;
-      const observer = wx.createIntersectionObserver();
+      const observer = api.createIntersectionObserver(this.context);
       this.$observer = observer;
       observer.relativeToViewport({
         bottom: 10,
@@ -87,6 +149,7 @@ class AnimationItem extends BaseEvent {
         left: 0,
         right: 10
       }).observe(`#${canvasId}`, (res) => {
+        if (!this.hasTriggerplay) return;
         if (res.intersectionRatio > 0) {
           this.play();
         } else {
@@ -147,7 +210,9 @@ class AnimationItem extends BaseEvent {
     this.timeCompleted = segment.time * this.frameRate;
     let segmentPath = this.path + this.fileName + '_' + this.segmentPos + '.json';
     this.segmentPos += 1;
-    assetLoader.load(segmentPath, this.includeLayers.bind(this));
+    assetLoader.load(segmentPath, this.includeLayers.bind(this), function () {
+      this.trigger('data_failed');
+    }.bind(this));
   }
 
   loadSegments() {
@@ -158,15 +223,16 @@ class AnimationItem extends BaseEvent {
     this.loadNextSegment();
   }
 
+  imagesLoaded() {
+    this.trigger('loaded_images');
+    this.checkLoaded();
+  }
+
   preloadImages() {
-    this.imagePreloader = new ImagePreloader();
+    this.imagePreloader.setCanvas(this.renderer.renderConfig.canvas);
     this.imagePreloader.setAssetsPath(this.assetsPath);
     this.imagePreloader.setPath(this.path);
-    this.imagePreloader.loadAssets(this.animationData.assets, function (err) {
-      if (!err) {
-        this.trigger('loaded_images');
-      }
-    }.bind(this));
+    this.imagePreloader.loadAssets(this.animationData.assets, this.imagesLoaded.bind(this));
   }
 
   configAnimation(animData) {
@@ -192,33 +258,21 @@ class AnimationItem extends BaseEvent {
     this.waitForFontsLoaded();
   }
 
-  completeData() {
-    dataManager.completeData(this.animationData, this.renderer.globalData.fontManager);
-    this.checkLoaded();
-  }
-
   waitForFontsLoaded() {
     if (!this.renderer) {
       return;
     }
     if (true /* this.renderer.globalData.fontManager.loaded */) {
-      this.completeData();
+      this.checkLoaded();
     } else {
       setTimeout(this.waitForFontsLoaded.bind(this), 20);
     }
   }
 
-  addPendingElement() {
-    this.pendingElements += 1;
-  }
-
-  elementLoaded() {
-    this.pendingElements -= 1;
-    this.checkLoaded();
-  }
-
   checkLoaded() {
-    if (this.pendingElements === 0) {
+    if (!this.isLoaded && this.renderer.globalData.fontManager.loaded() && (this.imagePreloader.loaded())) {
+      this.isLoaded = true;
+      dataManager.completeData(this.animationData, this.renderer.globalData.fontManager);
       if (expressionsPlugin) {
         expressionsPlugin.initExpressions(this);
       }
@@ -226,7 +280,6 @@ class AnimationItem extends BaseEvent {
       setTimeout(function () {
         this.trigger('DOMLoaded');
       }.bind(this), 0);
-      this.isLoaded = true;
       this.gotoFrame();
       if (this.autoplay) {
         this.play();
@@ -256,7 +309,7 @@ class AnimationItem extends BaseEvent {
     if (this.isLoaded === false) {
       return;
     }
-    this.renderer.renderFrame(this.currentFrame + this.firstFrame);
+    this.renderer && this.renderer.renderFrame(this.currentFrame + this.firstFrame);
   }
 
   play(name) {
@@ -267,6 +320,7 @@ class AnimationItem extends BaseEvent {
       this.isPaused = false;
       if (this._idle) {
         this._idle = false;
+        this.hasTriggerplay = true;
         this.trigger('_active');
       }
     }
